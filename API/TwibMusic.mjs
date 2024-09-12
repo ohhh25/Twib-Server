@@ -1,5 +1,4 @@
 import express from "express";
-import fs from "fs";
 
 import yts from "yt-search";
 import ytdl from "@distube/ytdl-core";
@@ -13,8 +12,6 @@ router.use(express.json());
 
 const globalQueue = [];
 let processingBatch = false;
-
-const agent = ytdl.createAgent(JSON.parse(fs.readFileSync("cookies.json")));
 
 const chunkArray = (array, size) => {
   const result = [];
@@ -44,7 +41,7 @@ const search = async (song) => {
 // Download a single song
 const singleDownload = async (song, zipStream) => {
   const url = await search(song);    // get URL
-  const audioStream = ytdl(url, { quality: '140' }, { agent });    // get audio stream
+  const audioStream = ytdl(url, { quality: '140' });    // get audio stream
 
   const timeout = new Promise((_, reject) => 
     setTimeout(() => reject(new Error(`Download timed out for ${song.name}`)), 10000)
@@ -121,7 +118,7 @@ const processQueue = async () => {
 
 router.post("/", async (req, res) => {
   const { metadata } = req.body;    // extract metadata from request body
-  const batchSize = 1;    // number of songs to download in each batch
+  const batchSize = 2;    // number of songs to download in each batch
 
   // Create a new request object
   const request = {
