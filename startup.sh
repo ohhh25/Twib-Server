@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Define the warning message
-WARN_MSG="WARNING: ONLY USE THIS SCRIPT IF YOU ARE RUNNING THE SERVER ON A
- LINUX MACHINE AND ARE DEPLOYING THE SERVER PUBLICLY ON THE INTERNET"
-
+# Define the success message
 SUCCESS_MSG="Server started successfully. 
  Use 'pm2 logs Twib-Server' to view the logs.
  Use 'pm2 stop all' to stop the server."
@@ -28,10 +25,8 @@ cleanup() {
 # Set up the trap to catch SIGINT (Ctrl+C)
 trap cleanup SIGINT
 
-# Print the warning message
-echo "$WARN_MSG"
-echo "Press any key to continue...Press Ctrl+C to cancel."
-read -n 1 -s
+# Install pm2 globally
+npm install -g pm2 || { echo "Global pm2 installation failed"; exit 1; }
 
 # Install the required dependencies
 npm install || { echo "npm install failed"; exit 1; }
@@ -42,4 +37,5 @@ pm2 stop all
 # Start the server with name "Twib-Server"
 pm2 start server.mjs --name Twib-Server || { echo "Failed to start the server"; exit 1; }
 pm2 save
+
 echo -e "\n$SUCCESS_MSG"
