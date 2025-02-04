@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "fs";
 
 import yts from "yt-search";
 import ytdl from "@distube/ytdl-core";
@@ -12,6 +13,8 @@ router.use(express.json());
 
 const globalQueue = [];
 let processingBatch = false;
+
+const agent = ytdl.createAgent(JSON.parse(fs.readFileSync("cookies.json")));
 
 const chunkArray = (array, size) => {
   const result = [];
@@ -41,10 +44,10 @@ const search = async (song) => {
 // Download a single song
 const singleDownload = async (song, zipStream) => {
   const url = await search(song);    // get URL
-  const audioStream = ytdl(url, { quality: '140' });    // get audio stream
+  const audioStream = ytdl(url, { quality: '140' }, { agent });    // get audio stream
 
   const timeout = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error(`Download timed out for ${song.name}`)), 10000)
+    setTimeout(() => reject(new Error(`Download timed out for ${song.name}`)), 30000)
   );
 
   const downloadTask = new Promise((resolve, reject) => {
@@ -109,7 +112,7 @@ const processQueue = async () => {
       }
 
       // Wait a short time before processing the next batch (optional)
-      await new Promise((resolve) => setTimeout(resolve, 100));  // Add a slight delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));  // Add a slight delay
     }
   } finally {
     processingBatch = false;  // Reset flag once all requests are processed
@@ -118,7 +121,7 @@ const processQueue = async () => {
 
 router.post("/", async (req, res) => {
   const { metadata } = req.body;    // extract metadata from request body
-  const batchSize = 2;    // number of songs to download in each batch
+  const batchSize = 1;    // number of songs to download in each batch
 
   // Create a new request object
   const request = {
